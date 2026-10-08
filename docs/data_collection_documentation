@@ -1,0 +1,6 @@
+CelebA Data Collection
+1. Dataset inputs: Used the CelebA Aligned & Cropped Images ZIP containing 202,599 face images, along with identity_CelebA.txt containing identity labels for 10,177 identities.
+2. Staging & extraction: The pipeline stages the celeba.zip file locally (copying it from Google Drive when using Colab) and extracts the dataset only when needed.
+3. File discovery & parsing: Automatically locates the image directory and identity_CelebA.txt, then parses the image-to-identity mappings into a structured DataFrame.
+4. Image validation: Checks that the 202,599 expected images are present and randomly samples images to verify that they can be successfully decoded without corruption.
+5. Outputs: Generates manifest.csv containing the valid image–identity mappings, data_report.json with dataset statistics and validation results, and dataset_location.json containing the dataset paths.
