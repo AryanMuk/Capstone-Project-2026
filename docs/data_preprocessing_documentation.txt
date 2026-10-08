@@ -1,0 +1,5 @@
+Filters the CelebA dataset to retain identities with a minimum number of images and optionally selects a reproducible subset.
+Creates identity-disjoint splits by separating known identities into gallery/validation/test sets and unknown identities into validation/test probes.
+Validates the dataset splits to prevent duplicate images, identity leakage, and invalid gallery/probe assignments.
+Preprocesses face images through validation, MTCNN face detection, cropping, resizing, and image-quality/sharpness checks.
+Generates pipeline outputs including dataset splits, configuration settings, and a preprocessing report for use by subsequent embedding and backend components.
