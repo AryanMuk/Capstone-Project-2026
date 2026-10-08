@@ -2,9 +2,12 @@ import time
 import zipfile
 import shutil
 import os
+import random
+import pandas as pd 
 
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Dict
+from PIL import Image
 
 def _marker_name(zip_path: Path) -> str:
     return f".extracted_{zip_path.name}_{zip_path.stat().st_size}"
@@ -82,4 +85,70 @@ def parse_identity_file(path: Path) -> pd.DataFrame:
         raise ValueError(f"{path} contains entries that are not .jpg files")
     return df
 
+def verify_images(df: pd.DataFrame, images_dir: Path, sample: int = 500,
+                  seed: int = 0) -> Tuple[pd.DataFrame, Dict]:
+    """Keep rows whose file exists; open a random sample to catch corrupt files."""
+    on_disk = set(os.listdir(images_dir))
+    present_mask = df["image"].isin(on_disk)
+    missing = df.loc[~present_mask, "image"].tolist()
+    present = df.loc[present_mask].reset_index(drop=True)
+
+    names = present["image"].tolist()
+    picked = random.Random(seed).sample(names, min(sample, len(names)))
+    corrupt, sizes = [], {}
+    for name in picked:
+        try:
+            with Image.open(images_dir / name) as im:
+                im.verify()
+            with Image.open(images_dir / name) as im:   # verify() invalidates the handle
+                sizes[im.size] = sizes.get(im.size, 0) + 1
+        except Exception as exc:  # noqa: BLE001 - any decode failure counts as corrupt
+            corrupt.append({"image": name, "error": str(exc)})
+    return present, {
+        "n_missing": len(missing), "missing_examples": missing[:10],
+        "n_extra_files_on_disk": len(on_disk - set(df["image"])),
+        "sample_checked": len(picked), "corrupt": corrupt,
+        "sample_image_sizes": {f"{w}x{h}": n for (w, h), n in sizes.items()},
+    }
+
+
+def build_report(present: pd.DataFrame, checks: Dict, images_dir: Path,
+                 identity_file: Path) -> Dict:
+    per_id = present.groupby("identity").size()
+    warnings = []
+    if len(present) != EXPECTED_IMAGES:
+        warnings.append(f"{len(present)} images found, published CelebA has {EXPECTED_IMAGES}")
+    if per_id.size != EXPECTED_IDENTITIES:
+        warnings.append(f"{per_id.size} identities found, published CelebA has "
+                        f"{EXPECTED_IDENTITIES}")
+    if checks["n_missing"]:
+        warnings.append(f"{checks['n_missing']} images listed in the identity file are missing")
+    if checks["corrupt"]:
+        warnings.append(f"{len(checks['corrupt'])} sampled images failed to decode")
+    return {
+        "images_dir": str(images_dir), "identity_file": str(identity_file),
+        "n_images": int(len(present)), "n_identities": int(per_id.size),
+        "images_per_identity": {
+            "min": int(per_id.min()), "median": float(per_id.median()),
+            "mean": round(float(per_id.mean()), 2), "max": int(per_id.max()),
+            "identities_with_10_or_more": int((per_id >= 10).sum()),
+        },
+        "checks": checks, "warnings": warnings,
+    }
+
+
+def collect(zip_path: Optional[Path], dir_path: Optional[Path], sample: int,
+            paths: Optional[Paths] = None) -> Dict:
+    paths = (paths or get_paths()).ensure()
+    root = stage_dataset(zip_path, dir_path, paths)
+    images_dir, identity_file = locate_celeba(root)
+    df = parse_identity_file(identity_file)
+    present, checks = verify_images(df, images_dir, sample=sample)
+    if present.empty:
+        raise RuntimeError(f"None of the images listed in {identity_file} exist in {images_dir}")
+    present.to_csv(paths.file(MANIFEST_FILE), index=False)
+    write_dataset_location(paths, images_dir, identity_file)
+    report = build_report(present, checks, images_dir, identity_file)
+    write_json(paths.file("data_report.json"), report)
+    return report
 
