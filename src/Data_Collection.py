@@ -1,3 +1,6 @@
+from __future__ import annotations
+import argparse
+import sys
 import time
 import zipfile
 import shutil
@@ -8,6 +11,15 @@ import pandas as pd
 from pathlib import Path
 from typing import Optional, Tuple, Dict
 from PIL import Image
+
+from common.artifacts import MANIFEST_FILE
+from common.config import IN_COLAB
+
+EXPECTED_IMAGES = 202_599        # published CelebA size
+EXPECTED_IDENTITIES = 10_177
+IDENTITY_FILE_NAME = "identity_CelebA.txt"
+DEFAULT_ZIP_NAME = "celeba.zip"
+
 
 def _marker_name(zip_path: Path) -> str:
     return f".extracted_{zip_path.name}_{zip_path.stat().st_size}"
@@ -151,4 +163,24 @@ def collect(zip_path: Optional[Path], dir_path: Optional[Path], sample: int,
     report = build_report(present, checks, images_dir, identity_file)
     write_json(paths.file("data_report.json"), report)
     return report
+
+def main(argv: Optional[list] = None) -> int:
+    parser = argparse.ArgumentParser(description="Stage, locate and verify the CelebA dataset")
+    parser.add_argument("--zip", type=Path, help="zip with images + identity_CelebA.txt "
+                        f"(Colab default: {drive_dir() / DEFAULT_ZIP_NAME})")
+    parser.add_argument("--dir", type=Path, help="already-extracted folder (skips extraction)")
+    parser.add_argument("--sample", type=int, default=500, help="images to decode-check")
+    args = parser.parse_args(argv)
+
+    report = collect(args.zip, args.dir, args.sample)
+    print(f"\nImages: {report['n_images']}   Identities: {report['n_identities']}")
+    print(f"Images per identity: {report['images_per_identity']}")
+    for w in report["warnings"]:
+        print(f"WARNING: {w}")
+    print(f"Manifest written to {get_paths().file(MANIFEST_FILE)}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
 
