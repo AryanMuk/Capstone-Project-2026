@@ -17,7 +17,7 @@ from torch.utils.data import DataLoader, Dataset
 from common.artifacts import (EMBEDDINGS_FILE, EMBEDDINGS_INDEX_FILE, images_dir, load_splits,
                               write_json)
 from common.config import PipelineConfig, Paths, get_paths, load_pipeline_config
-from src.Data_Preprocessing_Aryan import load_celeba_array 
+from src.Data_Preprocessing import load_celeba_array 
 
 MODEL_NAME = "facenet-pytorch InceptionResnetV1 (vggface2)"
 
@@ -30,7 +30,7 @@ def get_device(prefer: Optional[str] = None) -> torch.device:
 
 
 def load_facenet(device: torch.device) -> torch.nn.Module:
-    from facenet_pytorch import InceptionResnetV1   # lazy: only needed when embedding
+    from facenet_pytorch import InceptionResnetV1 
     return InceptionResnetV1(pretrained="vggface2").eval().to(device)
 
 
@@ -111,7 +111,7 @@ def generate(cfg: PipelineConfig, paths: Optional[Paths] = None, shard_size: int
         arr = np.concatenate(parts)
         tmp = shard_dir / f"shard_{s:05d}.tmp.npy"
         np.save(tmp, arr)
-        os.replace(tmp, shard_file)                      # atomic: never leaves a half shard
+        os.replace(tmp, shard_file)                     
         done_images += len(chunk)
         rate = done_images / max(time.time() - t_start, 1e-9)
         print(f"  shard {s + 1}/{n_shards} done  ({rate:.0f} img/s)")

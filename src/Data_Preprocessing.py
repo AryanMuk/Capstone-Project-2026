@@ -15,11 +15,6 @@ from PIL import Image, ImageOps
 from common.artifacts import SPLIT_COLUMNS, SPLITS_FILE, images_dir, load_manifest, write_json
 from common.config import PipelineConfig, Paths, get_paths, save_pipeline_config
 
-# =============================================================================
-# SECTION 1/4 — Filter identities and select a reproducible subset
-# COMMIT: feat(preprocess): filter identities by image count and select a reproducible subset
-# =============================================================================
-
 
 def filter_identities(manifest: pd.DataFrame, min_images: int) -> pd.DataFrame:
     """Keep only identities that have at least `min_images` images."""
@@ -34,12 +29,6 @@ def select_subset(df: pd.DataFrame, subset_identities: Optional[int], seed: int)
         return df
     chosen = np.random.default_rng(seed).choice(ids, size=subset_identities, replace=False)
     return df.loc[df["identity"].isin(chosen)].reset_index(drop=True)
-
-
-# =============================================================================
-# SECTION 2/4 — Known/unknown identity split with gallery/val/test roles
-# COMMIT: feat(preprocess): add known/unknown identity split with gallery/val/test roles
-# =============================================================================
 
 
 def assign_splits(df: pd.DataFrame, cfg: PipelineConfig) -> pd.DataFrame:
@@ -96,11 +85,6 @@ def validate_splits(splits: pd.DataFrame, cfg: PipelineConfig) -> List[str]:
             problems.append(f"partition '{part}' has no known or no unknown probes")
     return problems
 
-# =============================================================================
-# SECTION 3/4 — CelebA crop and the upload ImageProcessor
-# COMMIT: feat(preprocess): add CelebA crop and the upload ImageProcessor (validate/detect/crop/quality)
-# =============================================================================
-
 
 def crop_celeba(img: Image.Image, crop: int, size: int) -> Image.Image:
     """Centre-crop the 178x218 aligned CelebA image to crop x crop, resize to size x size.
@@ -128,11 +112,11 @@ class Stage:
 @dataclass
 class ProcessResult:
     ok: bool
-    reason: Optional[str]            # machine-readable rejection reason, None when ok
-    message: str                     # human-readable explanation
+    reason: Optional[str]           
+    message: str                     
     stages: List[Stage] = field(default_factory=list)
-    face: Optional[np.ndarray] = None    # uint8 (size, size, 3) when ok
-    box: Optional[List[float]] = None    # detected face box in the (possibly downscaled) image
+    face: Optional[np.ndarray] = None    
+    box: Optional[List[float]] = None    
 
     def stages_as_dicts(self) -> List[Dict]:
         return [asdict(s) for s in self.stages]
@@ -173,7 +157,7 @@ class ImageProcessor:
 
     def _detector(self):
         if self._mtcnn is None:
-            from facenet_pytorch import MTCNN   # lazy: heavy import, needs torch
+            from facenet_pytorch import MTCNN   
             self._mtcnn = MTCNN(keep_all=True, device=self.device)
         return self._mtcnn
 
@@ -202,7 +186,7 @@ class ImageProcessor:
             img = Image.open(io.BytesIO(data))
             img.load()
             img = ImageOps.exif_transpose(img).convert("RGB")
-        except Exception:  # noqa: BLE001 - any decode problem means an invalid upload
+        except Exception:  
             return reject("invalid_image", "file is not a readable image", "validate", t0)
         if min(img.size) < self.min_image_px:
             return reject("image_too_small", f"image is smaller than {self.min_image_px}px",
@@ -248,12 +232,6 @@ class ImageProcessor:
         return ProcessResult(True, None, "ok", stages, face, [float(v) for v in box])
 
 
-# =============================================================================
-# SECTION 4/4 — Write splits, config and report; command-line entry point
-# COMMIT: feat(preprocess): write splits, config and report; add command-line entry point
-# =============================================================================
-
-
 def build_report(manifest_rows: int, eligible: pd.DataFrame, selected: pd.DataFrame,
                  splits: pd.DataFrame, cfg: PipelineConfig) -> Dict:
     return {
@@ -279,7 +257,7 @@ def run(cfg: PipelineConfig, paths: Optional[Paths] = None, check_images: int = 
     if problems:
         raise RuntimeError("Invalid split: " + "; ".join(problems))
 
-    if check_images:   # prove the crop works on real files before the expensive embedding step
+    if check_images: 
         folder = images_dir(paths)
         for name in splits["image"].sample(min(check_images, len(splits)), random_state=cfg.seed):
             arr = load_celeba_array(folder / name, cfg)

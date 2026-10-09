@@ -1,0 +1,11 @@
+# Colab environment: torch, torchvision, numpy, pandas, scikit-learn, Pillow, OpenCV, Flask and
+# matplotlib are PREINSTALLED and managed by Colab. Do not pin or reinstall them here.
+# Install this file, then install facenet-pytorch WITHOUT its dependencies (it pins torch<2.3,
+# numpy<2, Pillow<10.3, which would downgrade Colab's stack):
+#
+#   pip install -r requirements-colab.txt
+#   pip install --no-deps facenet-pytorch==2.6.0
+#
+cryptography>=42.0.0
+tqdm>=4.66
+pytest>=8.0
