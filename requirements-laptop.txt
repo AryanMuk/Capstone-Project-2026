@@ -1,0 +1,18 @@
+# Laptop environment: Windows 11, CPU only, Python 3.11  (see setup_env.ps1)
+# torch 2.2.x / numpy 1.26 are pinned together because facenet-pytorch 2.6.0 requires
+# torch>=2.2,<2.3, torchvision<0.18, numpy<2 and Pillow>=10.2,<10.3.
+# On Windows the PyPI torch wheel is already CPU-only, so no extra index is needed.
+numpy==1.26.4
+pandas==2.2.2
+scipy==1.13.1
+scikit-learn==1.4.2
+Pillow==10.2.0
+matplotlib==3.8.4
+cryptography==42.0.8
+Flask==3.0.3
+requests==2.32.3
+tqdm==4.66.4
+pytest==8.2.2
+torch==2.2.2
+torchvision==0.17.2
+facenet-pytorch==2.6.0

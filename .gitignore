@@ -1,0 +1,25 @@
+# --- Python ---
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# --- Local workspace, data and secrets: NEVER commit these ---
+work/
+artifacts/
+keys/
+*.key
+.env
+*.sqlite
+*.sqlite-journal
+*.npy
+*.zip
+
+# --- Frontend ---
+frontend/node_modules/
+frontend/dist/
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.vscode/

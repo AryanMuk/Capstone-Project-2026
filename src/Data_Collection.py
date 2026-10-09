@@ -15,7 +15,7 @@ from PIL import Image
 from common.artifacts import MANIFEST_FILE
 from common.config import IN_COLAB
 
-EXPECTED_IMAGES = 202_599        # published CelebA size
+EXPECTED_IMAGES = 202_599
 EXPECTED_IDENTITIES = 10_177
 IDENTITY_FILE_NAME = "identity_CelebA.txt"
 DEFAULT_ZIP_NAME = "celeba.zip"
@@ -36,7 +36,7 @@ def extract_zip(zip_path: Path, target: Path) -> Path:
     with zipfile.ZipFile(zip_path) as zf:
         members = zf.infolist()
         for i, m in enumerate(members, 1):
-            zf.extract(m, target)  # ZipFile.extract strips absolute paths and '..'
+            zf.extract(m, target)
             if i % 25_000 == 0:
                 print(f"  extracted {i}/{len(members)} files")
     marker.write_text(f"{time.time() - start:.1f}s")
@@ -53,12 +53,12 @@ def stage_dataset(zip_path: Optional[Path], dir_path: Optional[Path], paths: Pat
     if zip_path is None:
         if not IN_COLAB:
             raise ValueError("Pass --zip <path to celeba zip> or --dir <extracted folder>.")
-        from src.Project_Setup_Suvrat import check_drive_inputs
+        from src.Project_Setup import check_drive_inputs
         zip_path = check_drive_inputs(DEFAULT_ZIP_NAME)
     if not zip_path.exists():
         raise FileNotFoundError(f"{zip_path} not found")
     if IN_COLAB and str(zip_path).startswith("/content/drive"):
-        local_zip = paths.work / zip_path.name       # Drive reads are slow; copy once
+        local_zip = paths.work / zip_path.name
         if not local_zip.exists() or local_zip.stat().st_size != zip_path.stat().st_size:
             print(f"Copying {zip_path.name} from Drive to local disk ...")
             shutil.copy2(zip_path, local_zip)
@@ -112,9 +112,9 @@ def verify_images(df: pd.DataFrame, images_dir: Path, sample: int = 500,
         try:
             with Image.open(images_dir / name) as im:
                 im.verify()
-            with Image.open(images_dir / name) as im:   # verify() invalidates the handle
+            with Image.open(images_dir / name) as im:   
                 sizes[im.size] = sizes.get(im.size, 0) + 1
-        except Exception as exc:  # noqa: BLE001 - any decode failure counts as corrupt
+        except Exception as exc:
             corrupt.append({"image": name, "error": str(exc)})
     return present, {
         "n_missing": len(missing), "missing_examples": missing[:10],
@@ -183,4 +183,3 @@ def main(argv: Optional[list] = None) -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-
