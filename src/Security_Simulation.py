@@ -21,12 +21,7 @@ from src.Query_Authorisation import (check_request_freshness, open_gallery, open
 from src.Threat_Scenario_Setup import (SCENARIOS, Lab, UserKeyMaterial, db_only_view,
                                              leak_user_keys, master_key_view)
 
-TRIALS_PER_VICTIM = 10   # zero-effort attempts per victim when estimating baseline/fallback ASR
-
-# =============================================================================
-# SECTION 1/4 — Attacker primitives, database theft, key compromise
-# COMMIT: feat(security): add attacker primitives and database-theft / key-compromise scenarios
-# =============================================================================
+TRIALS_PER_VICTIM = 10 
 
 
 def _cos(a: np.ndarray, b: np.ndarray) -> np.ndarray:
@@ -148,7 +143,7 @@ def _single_user_open(scheme: str, blob: bytes, target: str, version: int,
 def scenario_key_compromise(lab: Lab, defender: Defender, rng: np.random.Generator,
                             n_single: int = 25) -> Dict[str, Dict]:
     dim = lab.cfg.embedding_dim
-    view = master_key_view(lab)                      # DB copy + master key
+    view = master_key_view(lab)                      
     out: Dict[str, Dict] = {}
     plain_thr = lab.thresholds["plaintext"]
     sample = rng.choice(len(lab.victims), size=min(n_single, len(lab.victims)), replace=False)
@@ -170,8 +165,8 @@ def scenario_key_compromise(lab: Lab, defender: Defender, rng: np.random.Generat
                       for t in lab.victims]
             exposed.append(float(np.mean(opened)))
             own = _single_user_open(scheme, blobs[victim][1], victim, blobs[victim][0], keys, dim)
-            if scheme == "cancelable":      # code is readable but without the projection it cannot
-                asr_hits.append(defender.zero_effort_asr(scheme, rng, np.array([pos])))  # be forged
+            if scheme == "cancelable":      
+                asr_hits.append(defender.zero_effort_asr(scheme, rng, np.array([pos]))) 
             else:
                 asr_hits.append(float(own))
         out[scheme] = {
@@ -191,13 +186,6 @@ def _opens_with_master(scheme: str, conn, ks, user_id: str, lab: Lab) -> float:
         return 1.0
     except (TemplateIntegrityError, KeyError):
         return 0.0
-
-
-# =============================================================================
-# SECTION 2/4 — Tampering and replay
-# COMMIT: feat(security): add tampering and replay scenarios
-# =============================================================================
-
 
 def scenario_tampering(lab: Lab, defender: Defender, rng: np.random.Generator) -> Dict[str, Dict]:
     dim, bits = lab.cfg.embedding_dim, lab.cfg.cancelable_bits
@@ -257,9 +245,9 @@ def scenario_replay(lab: Lab, defender: Defender, rng: np.random.Generator) -> D
             genuine_ok = first_ok and verify(one, probe, u, thr).accepted
             genuine += int(genuine_ok)
             if not genuine_ok:
-                continue                                    # only replay requests that succeeded
-            unprotected += int(verify(one, probe, u, thr).accepted)     # no nonce check at all
-            replay_ok, _ = check_request_freshness(conn, nonce, issued)  # same nonce again
+                continue                                    
+            unprotected += int(verify(one, probe, u, thr).accepted)     
+            replay_ok, _ = check_request_freshness(conn, nonce, issued)  
             protected += int(replay_ok and verify(one, probe, u, thr).accepted)
             old_ok, _ = check_request_freshness(conn, uuid.uuid4().hex, time.time() - 3600)
             stale += int(not old_ok)
@@ -270,13 +258,6 @@ def scenario_replay(lab: Lab, defender: Defender, rng: np.random.Generator) -> D
                        "stale_reject_rate": stale / n_ok,
                        "genuine_accept_rate": genuine / len(lab.victims)}
     return out
-
-
-# =============================================================================
-# SECTION 3/4 — Revocation and unlinkability
-# COMMIT: feat(security): add revocation and unlinkability scenarios
-# =============================================================================
-
 
 def _code_scores(codes_a: np.ndarray, codes_b: np.ndarray) -> np.ndarray:
     """Template-domain score between two aligned stacks of cancelable codes."""
@@ -292,7 +273,7 @@ def scenario_revocation(lab: Lab, defender: Defender, rng: np.random.Generator) 
     bits = lab.cfg.cancelable_bits
     view = master_key_view(lab, "revocation_attacker")
     conn = db.connect(lab.copy_db("revocation"))
-    for u, fresh in zip(lab.victims, lab.alt_templates):     # revoke: re-issue from a fresh capture
+    for u, fresh in zip(lab.victims, lab.alt_templates):     
         reissue_user(conn, lab.ks, u, fresh, bits)
     after = {s: open_gallery(conn, s, lab.ks, lab.cfg.embedding_dim, bits) for s in SCHEMES}
     conn.close()
@@ -332,7 +313,7 @@ def _bytes_similarity(a: bytes, b: bytes) -> float:
 def scenario_unlinkability(lab: Lab, defender: Defender, rng: np.random.Generator,
                            non_mated_per_victim: int = 10) -> Dict[str, Dict]:
     dim, bits = lab.cfg.embedding_dim, lab.cfg.cancelable_bits
-    conn_b = db.connect(lab.workdir / "system_b.sqlite")          # a second, independent system
+    conn_b = db.connect(lab.workdir / "system_b.sqlite")          
     db.init_schema(conn_b)
     enroll_users(conn_b, lab.ks, lab.victims, lab.alt_templates, bits, version=2)
     conn_a = lab.connect()
@@ -347,7 +328,7 @@ def scenario_unlinkability(lab: Lab, defender: Defender, rng: np.random.Generato
         def link_scores(sim) -> tuple:
             mated = np.array([sim(i, i) for i in range(n)])
             others = rng.integers(0, n - 1, size=(n, non_mated_per_victim))
-            others = others + (others >= np.arange(n)[:, None])           # skip j == i
+            others = others + (others >= np.arange(n)[:, None])           
             non_mated = np.array([[sim(i, j) for j in row] for i, row in enumerate(others)]).ravel()
             return mated, non_mated
 
@@ -377,10 +358,6 @@ def scenario_unlinkability(lab: Lab, defender: Defender, rng: np.random.Generato
     return out
 
 
-# =============================================================================
-# SECTION 4/4 — Runner, results export and command-line entry point
-# COMMIT: feat(security): add scenario runner, results export and command-line entry point
-# =============================================================================
 SCENARIO_RUNNERS: Dict[str, Callable] = {
     "db_theft": scenario_db_theft, "key_compromise": scenario_key_compromise,
     "tampering": scenario_tampering, "replay": scenario_replay,
