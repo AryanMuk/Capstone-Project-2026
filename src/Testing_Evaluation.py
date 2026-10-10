@@ -1,28 +1,3 @@
-"""
-Testing & Evaluation — owner: Ayati   (Gantt: Testing & Evaluation, 6 Oct)
-Branch: feature/testing-evaluation-ayati
-Depends on: Embedding_Encryption_Suvrat (templates.sqlite), Query_Authorisation_Jaskaran,
-            splits.csv, embeddings.npy
-Produces  : eval_results.json, figures/*.png      (also tests/test_smoke_Ayati.py)
-
-Protocols, all computed from ONE score matrix per scheme (probes x enrolled users):
-  closed-set  : known test probes; Rank-1, Rank-5, CMC.                (ties count against us)
-  verification: genuine = probe vs own template; impostor = known probes vs other users plus
-                unknown probes vs random users; FAR, FRR, EER, AUC-ROC.
-  open-set    : known + unknown test probes, top-1 decision; DIR at fixed false-positive
-                identification rates (FPIR).
-Thresholds are chosen on the VAL partition and applied unchanged to TEST.
-
-Run (repo root):
-    python -m src.Testing_Evaluation_Ayati evaluate [--max-probes 20000] [--schemes aes cancelable]
-    python -m src.Testing_Evaluation_Ayati smoke      # run the milestone smoke tests
-
-Sections / commits (use `git add -p` to commit section by section):
-  1. feat(eval): add CMC, ROC/EER/AUC and open-set DIR metrics with val-chosen thresholds
-  2. feat(eval): evaluate each scheme (accuracy, latency, storage) from one score matrix
-  3. feat(eval): add ROC/CMC/efficiency figures
-  4. feat(eval): add evaluate/smoke command-line entry point
-"""
 from __future__ import annotations
 
 import argparse
@@ -39,16 +14,10 @@ from common import db
 from common.artifacts import load_embeddings, read_json, user_id_for, write_json
 from common.config import REPO_ROOT, SCHEMES, PipelineConfig, Paths, get_paths, load_pipeline_config
 from common.crypto import KeyStore
-from src.Query_Authorisation_Jaskaran import (GalleryMatcher, identify, open_gallery, open_user,
+from src.Query_Authorisation import (GalleryMatcher, identify, open_gallery, open_user,
                                               score_matrix, verify)
 
 OPEN_SET_FPIRS = (0.001, 0.01, 0.1)
-
-# =============================================================================
-# SECTION 1/4 — Metrics
-# COMMIT: feat(eval): add CMC, ROC/EER/AUC and open-set DIR metrics with val-chosen thresholds
-# =============================================================================
-
 
 def ranks_of_truth(scores: np.ndarray, true_idx: np.ndarray) -> np.ndarray:
     """1-based rank of the true user per probe. Ties are counted AGAINST the system
@@ -113,13 +82,6 @@ def open_set_report(val_known_top: np.ndarray, test_known_top: np.ndarray,
             "dir_test": float(((test_known_top >= t) & test_known_correct).mean()),
         }
     return out
-
-
-# =============================================================================
-# SECTION 2/4 — Scheme evaluation
-# COMMIT: feat(eval): evaluate each scheme (accuracy, latency, storage) from one score matrix
-# =============================================================================
-
 
 def select_probes(splits: pd.DataFrame, max_probes: int, seed: int) -> Dict[Tuple[str, str], pd.DataFrame]:
     """Same probes for every scheme: {(group, partition): rows with identity,row}."""
@@ -224,7 +186,7 @@ def evaluate_scheme(scheme: str, conn, ks: KeyStore, emb: np.ndarray, probes: Di
 def run_evaluation(cfg: PipelineConfig, paths: Optional[Paths] = None,
                    schemes: Sequence[str] = SCHEMES, max_probes: int = 20000, seed: int = 0,
                    device: Optional[str] = None, figures: bool = True) -> Dict:
-    from src.Embedding_Encryption_Suvrat import TEMPLATES_DB
+    from src.Embedding_Encryption import TEMPLATES_DB
     paths = paths or get_paths()
     emb, splits = load_embeddings(paths)
     probes = select_probes(splits, max_probes, seed)
@@ -251,11 +213,6 @@ def run_evaluation(cfg: PipelineConfig, paths: Optional[Paths] = None,
         make_figures(out, paths)
     return out
 
-
-# =============================================================================
-# SECTION 3/4 — Figures
-# COMMIT: feat(eval): add ROC/CMC/efficiency figures
-# =============================================================================
 def make_figures(results: Dict, paths: Paths) -> List[str]:
     import matplotlib
     matplotlib.use("Agg")
@@ -309,11 +266,6 @@ def make_figures(results: Dict, paths: Paths) -> List[str]:
     written.append(str(f))
     return written
 
-
-# =============================================================================
-# SECTION 4/4 — Command-line entry point
-# COMMIT: feat(eval): add evaluate/smoke command-line entry point
-# =============================================================================
 def print_summary(results: Dict) -> None:
     print(f"\n{'scheme':<11}{'rank1':>8}{'rank5':>8}{'EER':>8}{'AUC':>8}{'verify ms':>11}{'bytes':>8}")
     for s, r in results["schemes"].items():
@@ -335,7 +287,7 @@ def main(argv: Optional[list] = None) -> int:
     args = p.parse_args(argv)
 
     if args.command == "smoke":
-        return subprocess.call([sys.executable, "-m", "pytest", "-q", "tests/test_smoke_Ayati.py"],
+        return subprocess.call([sys.executable, "-m", "pytest", "-q", "tests/test_smoke.py"],
                                cwd=str(REPO_ROOT))
     results = run_evaluation(load_pipeline_config(), schemes=args.schemes,
                              max_probes=args.max_probes, seed=args.seed, device=args.device,
