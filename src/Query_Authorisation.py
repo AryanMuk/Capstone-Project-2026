@@ -20,10 +20,10 @@ from common.schemes import FLOAT_SCHEMES, open_blob
 class GalleryMatcher:
     scheme: str
     user_ids: List[str]
-    gallery: np.ndarray                    # (U, d) float32, or (U, k) int8 codes for cancelable
-    signs: Optional[np.ndarray] = None     # (U, d) int8, cancelable only
-    proj: Optional[np.ndarray] = None      # (k, d) float32, cancelable only
-    rejected: List[Tuple[str, str]] = field(default_factory=list)  # (user_id, reason) skipped
+    gallery: np.ndarray                    
+    signs: Optional[np.ndarray] = None     
+    proj: Optional[np.ndarray] = None      
+    rejected: List[Tuple[str, str]] = field(default_factory=list)  
     index: Dict[str, int] = field(init=False)
 
     def __post_init__(self) -> None:
@@ -38,7 +38,7 @@ def _build_matcher(scheme: str, ks: KeyStore, rows, dim: int, bits: int) -> Gall
     for uid, version, blob in rows:
         try:
             mats.append(open_blob(scheme, ks, uid, version, blob, dim, bits))
-        except TemplateIntegrityError as exc:    # a tampered row must not take everyone down
+        except TemplateIntegrityError as exc:    
             rejected.append((uid, str(exc)))
             continue
         ids.append(uid)
@@ -94,10 +94,10 @@ def _cancelable_agreement(probes: np.ndarray, signs: np.ndarray, proj: np.ndarra
     for i in range(0, len(probes), batch):
         x = torch.as_tensor(probes[i:i + batch], device=dev)
         if pairwise:
-            z = (x * S[i:i + batch]) @ P.T                               # (b, k)
+            z = (x * S[i:i + batch]) @ P.T                               
             out.append((torch.where(z >= 0, 1.0, -1.0) * C[i:i + batch]).mean(-1).cpu().numpy())
         else:
-            z = (x[:, None, :] * S[None, :, :]) @ P.T                    # (b, U, k)
+            z = (x[:, None, :] * S[None, :, :]) @ P.T                    
             out.append((torch.where(z >= 0, 1.0, -1.0) * C[None, :, :]).mean(-1).cpu().numpy())
     return np.concatenate(out) if out else np.zeros((0,) if pairwise else (0, len(S)))
 
@@ -136,10 +136,10 @@ def score_pairs(matcher: GalleryMatcher, probes: np.ndarray, user_idx: np.ndarra
 @dataclass
 class Decision:
     accepted: bool
-    reason: str                              # match | below_threshold | unknown_user | empty_gallery
+    reason: str                              
     score: Optional[float]
     threshold: float
-    user_id: Optional[str] = None            # claimed user (verify) or best match (identify)
+    user_id: Optional[str] = None            
     top: List[Tuple[str, float]] = field(default_factory=list)
 
 

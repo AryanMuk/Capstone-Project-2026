@@ -17,17 +17,12 @@ from common.crypto import KeyStore
 from src.Embedding_Encryption import build_user_templates, enroll_users
 from src.Query_Authorisation import open_gallery, score_pairs
 
-# =============================================================================
-# SECTION 1/4 — Threat scenarios
-# COMMIT: feat(threat): define the six threat scenarios, attacker capabilities and metrics
-# =============================================================================
-
 
 @dataclass(frozen=True)
 class Scenario:
     id: str
     title: str
-    attacker: str          # what the attacker has / can do
+    attacker: str          
     goal: str
     metrics: Tuple[str, ...]
     note: str = ""
@@ -85,24 +80,18 @@ SCENARIOS: Dict[str, Scenario] = {s.id: s for s in [
 
 
 
-# =============================================================================
-# SECTION 2/4 — Victim lab
-# COMMIT: feat(threat): build the victim lab (enrolled victims, probes, operating thresholds)
-# =============================================================================
-
-
 @dataclass
 class Lab:
     cfg: PipelineConfig
-    ks: KeyStore                    # the DEFENDER's keys (lab-specific, not the real master key)
+    ks: KeyStore                    
     workdir: Path
     db_path: Path
     victims: List[str]
-    templates: np.ndarray           # (V, d) enrolled gallery-mean templates (ground truth)
-    genuine_probes: np.ndarray      # (V, d) a genuine test probe per victim
-    alt_templates: np.ndarray       # (V, d) second enrolment from different (val) images
-    attacker_probes: np.ndarray     # (A, d) unknown identities: zero-effort impostors
-    thresholds: Dict[str, float] = field(default_factory=dict)   # per scheme, FAR-targeted
+    templates: np.ndarray           
+    genuine_probes: np.ndarray      
+    alt_templates: np.ndarray       
+    attacker_probes: np.ndarray     
+    thresholds: Dict[str, float] = field(default_factory=dict)   
     far_target: float = 0.01
 
     def connect(self):
@@ -181,11 +170,6 @@ def build_lab(paths: Optional[Paths] = None, cfg: Optional[PipelineConfig] = Non
     lab.thresholds = calibrate_thresholds(lab, seed=seed)
     return lab
 
-# =============================================================================
-# SECTION 3/4 — Attacker views
-# COMMIT: feat(threat): add attacker views (database only, master key, single-user key)
-# =============================================================================
-
 
 @dataclass(frozen=True)
 class UserKeyMaterial:
@@ -193,7 +177,7 @@ class UserKeyMaterial:
     user_id: str
     version: int
     aes_key: bytes
-    ecies_private: object              # X25519PrivateKey
+    ecies_private: object              
     cancel_wrap_key: bytes
     cancel_signs: np.ndarray
 
@@ -201,8 +185,8 @@ class UserKeyMaterial:
 @dataclass
 class AttackerView:
     name: str
-    db_path: Path                                   # the attacker's own copy of the database
-    master_key: Optional[bytes] = None              # set only if the master key leaked
+    db_path: Path                                   
+    master_key: Optional[bytes] = None              
     user_keys: Dict[str, UserKeyMaterial] = field(default_factory=dict)
 
     def keystore(self) -> Optional[KeyStore]:
@@ -232,12 +216,6 @@ def single_user_view(lab: Lab, user_id: str, name: Optional[str] = None) -> Atta
     return AttackerView(name, lab.copy_db(f"attacker_{name}"),
                         user_keys={user_id: leak_user_keys(lab.ks, user_id, version,
                                                            lab.cfg.embedding_dim)})
-
-
-# =============================================================================
-# SECTION 4/4 — Command-line entry point
-# COMMIT: feat(threat): add command-line entry point and threat_model.json export
-# =============================================================================
 
 
 def export_threat_model(paths: Paths) -> Path:
