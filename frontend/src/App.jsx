@@ -1,7 +1,3 @@
-// =============================================================================
-// Frontend_Jaskaran — SECTION 3/4: application shell and navigation
-// COMMIT: feat(frontend): add app shell with navigation, status banner and theme toggle
-// =============================================================================
 import React, { useEffect, useState } from "react";
 import { api } from "./schemes.js";
 import Authenticate from "./views/Authenticate.jsx";
@@ -55,8 +51,8 @@ export default function App() {
         {status && <p className="muted small">{status.n_users} enrolled ({status.n_members} team members). Photos are processed in memory and never stored.</p>}
       </nav>
       <main>
-        {error && <p className="notice bad" role="alert">⚠ Cannot reach the API: {error}. Start it with <code>python -m src.Backend_Aryan serve</code>.</p>}
-        {status && !status.calibrated && <p className="notice warn" role="status">▲ The demo gallery is not built yet. Run <code>python -m src.Backend_Aryan build-demo</code>.</p>}
+        {error && <p className="notice bad" role="alert">⚠ Cannot reach the API: {error}. Start it with <code>python -m src.Backend serve</code>.</p>}
+        {status && !status.calibrated && <p className="notice warn" role="status">▲ The demo gallery is not built yet. Run <code>python -m src.Backend build-demo</code>.</p>}
         <Current status={status} refreshStatus={refresh} />
       </main>
     </div>

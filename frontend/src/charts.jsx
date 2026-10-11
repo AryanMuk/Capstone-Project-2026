@@ -1,7 +1,3 @@
-// =============================================================================
-// Frontend_Jaskaran — SECTION 2/4: hand-rolled SVG charts (no chart library)
-// COMMIT: feat(frontend): add accessible SVG line and bar charts with hover and table view
-// =============================================================================
 import React, { useState } from "react";
 import { SCHEMES, SCHEME_INFO } from "./schemes.js";
 

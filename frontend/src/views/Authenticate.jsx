@@ -1,7 +1,3 @@
-// =============================================================================
-// Frontend_Jaskaran — SECTION 4/4: views (Authenticate, Compare, Theft, People)
-// COMMIT: feat(frontend): add authentication, comparison, theft and people views
-// =============================================================================
 import React, { useEffect, useRef, useState } from "react";
 import { api, SCHEMES, SCHEME_INFO, num, ms } from "../schemes.js";
 
