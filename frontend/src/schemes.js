@@ -1,8 +1,3 @@
-// =============================================================================
-// Frontend_Jaskaran — SECTION 1/4: shared constants, API client, formatting
-// COMMIT: feat(frontend): scaffold Vite app, API client and scheme palette
-// =============================================================================
-// Scheme order is fixed so a colour always follows its scheme (never its rank).
 export const SCHEMES = ["plaintext", "aes", "ecies", "cancelable"];
 export const SCHEME_INFO = {
   plaintext: { label: "Plaintext (control)", short: "Plaintext", color: "var(--c-plaintext)", dash: "" },
