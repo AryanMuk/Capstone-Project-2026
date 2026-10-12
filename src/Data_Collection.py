@@ -1,19 +1,20 @@
 from __future__ import annotations
+
 import argparse
+import os
+import random
+import shutil
 import sys
 import time
 import zipfile
-import shutil
-import os
-import random
-import pandas as pd 
-
 from pathlib import Path
-from typing import Optional, Tuple, Dict
+from typing import Dict, Optional, Tuple
+
+import pandas as pd
 from PIL import Image
 
-from common.artifacts import MANIFEST_FILE
-from common.config import IN_COLAB
+from common.artifacts import MANIFEST_FILE, write_dataset_location, write_json
+from common.config import IN_COLAB, Paths, drive_dir, get_paths
 
 EXPECTED_IMAGES = 202_599
 EXPECTED_IDENTITIES = 10_177
