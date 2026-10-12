@@ -93,7 +93,7 @@ def mount_drive() -> Path:
 
 
 def check_drive_inputs(zip_name: str = DEFAULT_ZIP_NAME) -> Path:
-    """Confirm the dataset zip is where Data_Collection_Jaskaran expects it."""
+    """Confirm the dataset zip is where Data_Collection expects it."""
     folder = mount_drive()
     zip_path = folder / zip_name
     if not zip_path.exists():
