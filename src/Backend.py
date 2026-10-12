@@ -24,13 +24,7 @@ from src.Query_Authorisation import (check_request_freshness, identify, open_gal
 DEMO_DB = "demo.sqlite"
 DEMO_THRESHOLDS = "demo_thresholds.json"
 DASHBOARD_DIST = REPO_ROOT / "frontend" / "dist"
-DEFAULT_THRESHOLD = {"verify": 0.5, "identify": 0.5}   # used only until build-demo calibrates
-
-# =============================================================================
-# SECTION 1/4 — Demo gallery builder and threshold calibration
-# COMMIT: feat(backend): build the demo gallery from CelebA through the upload ImageProcessor and calibrate operating thresholds
-# =============================================================================
-
+DEFAULT_THRESHOLD = {"verify": 0.5, "identify": 0.5}   
 
 class FaceNetEmbedder:
     """face (160,160,3) uint8 -> unit 512-d embedding. Loads FaceNet lazily on first use."""
@@ -123,7 +117,7 @@ def build_demo(paths: Paths, cfg: PipelineConfig, images_folder: Path, n_identit
     users, vectors = [], []
     for ident in chosen:
         rows = emb_g[gal_ident == ident]
-        if len(rows) >= 2:                                   # need at least 2 usable images
+        if len(rows) >= 2:                                  
             users.append(user_id_for(ident))
             vectors.append(_mean_unit(rows))
     if not users:
@@ -154,12 +148,6 @@ def build_demo(paths: Paths, cfg: PipelineConfig, images_folder: Path, n_identit
               "key_fingerprint": ks.fingerprint(), "schemes": thresholds}
     write_json(paths.file(DEMO_THRESHOLDS), report)
     return report
-
-
-# =============================================================================
-# SECTION 2/4 — Services: authenticate, enrol, revoke, delete
-# COMMIT: feat(backend): add Services (authenticate, enrol, revoke, delete) with injectable model/processor
-# =============================================================================
 
 
 class ServiceError(Exception):
@@ -369,12 +357,6 @@ class Services:
             return run_all(self._lab, scenarios)
 
 
-# =============================================================================
-# SECTION 3/4 — Flask app factory and REST endpoints
-# COMMIT: feat(backend): add Flask app factory and REST endpoints
-# =============================================================================
-
-
 def create_app(services: Optional[Services] = None):
     from flask import Flask, jsonify, request
 
@@ -455,12 +437,6 @@ def create_app(services: Optional[Services] = None):
 
     _register_results_and_dashboard(app, svc)
     return app
-
-
-# =============================================================================
-# SECTION 4/4 — Results/threat endpoints, dashboard hosting, command-line entry point
-# COMMIT: feat(backend): add results/threat endpoints, static dashboard hosting and CLI
-# =============================================================================
 
 
 def _register_results_and_dashboard(app, svc: Services) -> None:
