@@ -22,4 +22,7 @@ frontend/dist/
 # --- OS / editor ---
 .DS_Store
 Thumbs.db
-.vscode/
+.vscode/ 
+
+# --- brag plugin
+brag-output/
