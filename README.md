@@ -39,7 +39,7 @@ python -m src.Backend build-demo --celeba-dir "path_to_img_align_celeba"
 python -m src.Backend serve
 ```
 
-(`python -m src.Integration demo --celeba-dir ...` does both.)
+(`python -m src.Integration demo --celeba-dir "path_to_img_align_celeba"` does both.)
 
 Dashboard: **Authenticate** (upload a photo, see each processing stage and the decision, replay a request),
 **Compare schemes** (ROC, CMC, open-set, latency, storage), **Theft scenarios** (six attacks, stored or live),
