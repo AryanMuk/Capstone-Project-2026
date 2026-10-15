@@ -1,1 +1,58 @@
-This is a README.md file
+# Template Protection Lab
+
+Evaluation of biometric template protection for CNN-based facial authentication (FaceNet 512-d embeddings).
+Four schemes are compared on the same data: **plaintext** (control), **AES-256-GCM**, **ECIES (X25519)** and a
+**cancelable, non-invertible** binary template. Heavy work runs on Google Colab (GPU); the demo dashboard runs on a
+Windows 11 laptop (CPU only) against a SQLite database.
+
+Every stage is one file named `<Task>_<Member>.py` in `src/`. Each file lists its sections and commit messages in
+its header. `CODEBASE_MAP.md` lists every public function; `docs/PROJECT_LOG.md` is the CMMI Level 3 record.
+
+## 1. Prepare the dataset (once)
+
+Zip the `img_align_celeba` folder **together with** `identity_CelebA.txt` as `celeba.zip` and upload it to
+Google Drive at `MyDrive/capstone/celeba.zip`.
+
+## 2. Run the pipeline on Colab
+
+Open `colab/Colab_Runner_Suvrat.py` as a notebook (each `# %%` block is a cell; uncomment the `!`/`%` lines),
+select a GPU runtime, set `REPO_URL`, and run the cells. Start with `SUBSET = 2000`; set `None` for full CelebA.
+Equivalent command: `python -m src.Integration_Suvrat run --zip /content/drive/MyDrive/capstone/celeba.zip --subset 2000 --fp16`.
+Artifacts persist in Drive (`MyDrive/capstone/artifacts`). Finish with `python -m src.Integration_Suvrat bundle`.
+
+## 3. Set up the laptop (PowerShell, repo root)
+
+```powershell
+.\setup_env.ps1          # creates .venv with Python 3.11 and installs requirements-laptop.txt
+.\.venv\Scripts\Activate.ps1
+cd frontend; npm install; npm run build; cd ..
+```
+
+Copy the files from `laptop_bundle` into `work\artifacts`. Then:
+
+```powershell
+python -m src.Backend_Aryan build-demo --celeba-dir D:\celeba\img_align_celeba   # builds the demo gallery and thresholds
+python -m src.Backend_Aryan serve                                                  # http://127.0.0.1:5000
+```
+
+(`python -m src.Integration_Suvrat demo --celeba-dir ...` does both.)
+
+Dashboard: **Authenticate** (upload a photo, see each processing stage and the decision, replay a request),
+**Compare schemes** (ROC, CMC, open-set, latency, storage), **Theft scenarios** (six attacks, stored or live),
+**People** (enrol team members with consent, re-issue keys, delete).
+To show the rejection demo: enrol some teammates, leave one out, upload the teammate who is not enrolled.
+
+## Tests
+
+`python -m pytest -m "not slow"` runs the synthetic-data smoke tests; `-m slow` also downloads the FaceNet weights.
+
+## Privacy
+
+Photos are processed in memory and never stored; the server binds to `127.0.0.1`; members consent and can be
+deleted. `keys/` and `*.sqlite` are git-ignored — never commit them.
+
+## Read before quoting numbers
+
+Smoke tests use synthetic embeddings: their accuracy figures are **not** results. Real accuracy, timings and the
+GPU runtime come only from the Colab run on CelebA. Image-processor thresholds (face size, sharpness, margin) are
+untuned defaults.
