@@ -5,37 +5,41 @@ Four schemes are compared on the same data: **plaintext** (control), **AES-256-G
 **cancelable, non-invertible** binary template. Heavy work runs on Google Colab (GPU); the demo dashboard runs on a
 Windows 11 laptop (CPU only) against a SQLite database.
 
-Every stage is one file named `<Task>_<Member>.py` in `src/`. Each file lists its sections and commit messages in
-its header. `CODEBASE_MAP.md` lists every public function; `docs/PROJECT_LOG.md` is the CMMI Level 3 record.
+Every stage is one file named `<Task>.py` in `src/`. `CODEBASE_MAP.md` lists every public function; `docs/PROJECT_LOG.md` is the CMMI Level 3 record.
 
 ## 1. Prepare the dataset (once)
 
-Zip the `img_align_celeba` folder **together with** `identity_CelebA.txt` as `celeba.zip` and upload it to
-Google Drive at `MyDrive/capstone/celeba.zip`.
+Place the `img_align_celeba` folder **together with** `identity_CelebA.txt` in `celebal_upload` folder and zip and rename it as `celeba.zip` and upload it to Google Drive at `MyDrive/capstone/celeba.zip`.
 
 ## 2. Run the pipeline on Colab
 
-Open `colab/Colab_Runner_Suvrat.py` as a notebook (each `# %%` block is a cell; uncomment the `!`/`%` lines),
-select a GPU runtime, set `REPO_URL`, and run the cells. Start with `SUBSET = 2000`; set `None` for full CelebA.
-Equivalent command: `python -m src.Integration_Suvrat run --zip /content/drive/MyDrive/capstone/celeba.zip --subset 2000 --fp16`.
-Artifacts persist in Drive (`MyDrive/capstone/artifacts`). Finish with `python -m src.Integration_Suvrat bundle`.
+Clone the repo or download the zipped version of the code and unzip it. Then upload the codebase to Google Drive at `MyDrive/capstone_code/capstone`. Note that repo folder name will be different, so ensure to rename it to `capstone` on drive.
+
+Open a new notebook at colab.research.google.com. Go to Runtime → Change runtime type and pick A100 GPU.
+
+Follow the code cells in `Capstone_Run.ipynb`.
+Note: `!python -m src.Integration run --zip /content/drive/MyDrive/capstone/celeba.zip --subset 2000 --fp16`, in this command subset flag is kept for trial runs. Removing it will run the full dataset.
+Once pipeline completed, finish with `!python -m src.Integration bundle`. Artifacts persist in Drive (`MyDrive/capstone/artifacts`)
+Note: Since different runs have different setttings, so before every run remove the previous artifacts using the last command in the `Capstone_Run.ipynb`
 
 ## 3. Set up the laptop (PowerShell, repo root)
 
+Copy the six files from `laptop_bundle` into `work\artifacts`. Create the folder tree if not present.
+Then:
+
 ```powershell
-.\setup_env.ps1          # creates .venv with Python 3.11 and installs requirements-laptop.txt
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\setup_env.ps1
 .\.venv\Scripts\Activate.ps1
 cd frontend; npm install; npm run build; cd ..
 ```
 
-Copy the files from `laptop_bundle` into `work\artifacts`. Then:
-
 ```powershell
-python -m src.Backend_Aryan build-demo --celeba-dir D:\celeba\img_align_celeba   # builds the demo gallery and thresholds
-python -m src.Backend_Aryan serve                                                  # http://127.0.0.1:5000
+python -m src.Backend build-demo --celeba-dir "path_to_img_align_celeba"
+python -m src.Backend serve
 ```
 
-(`python -m src.Integration_Suvrat demo --celeba-dir ...` does both.)
+(`python -m src.Integration demo --celeba-dir ...` does both.)
 
 Dashboard: **Authenticate** (upload a photo, see each processing stage and the decision, replay a request),
 **Compare schemes** (ROC, CMC, open-set, latency, storage), **Theft scenarios** (six attacks, stored or live),
