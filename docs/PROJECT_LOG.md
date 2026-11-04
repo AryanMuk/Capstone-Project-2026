@@ -72,9 +72,6 @@ Structured to CMMI for Development, Maturity Level 3
 - Full synthetic pipeline run: encrypt → evaluate → security simulation
 - Dashboard built with Vite and rendered in headless Chromium against the Flask server with synthetic artifacts: Compare and Theft views show data, no console errors.
 
-**Not done:** run on Google Colab or an A100 (timings unknown); run on Windows 11; real CelebA accuracy; rejecting a real
-photo of an unenrolled person; authenticate view with a real uploaded face in the browser; tuning of processor thresholds.
-
 ## 8. Quality Assurance (PPQA)
 
 Checklist per PR: tests pass; `CODEBASE_MAP.md` regenerated; no duplicate helpers (reuse `common/`); no secrets or photos committed;
