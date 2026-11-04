@@ -69,10 +69,7 @@ Structured to CMMI for Development, Maturity Level 3
 
 ## 7. Verification And Validation Record
 
-Done on 2026-10-04 in a Linux sandbox:
-
-- `pytest -m "not slow"`: 32 passed; `pytest -m slow`: 1 passed (real FaceNet weights, real-model backend path).
-- Full synthetic pipeline run: encrypt → evaluate → security simulation → API; cancelable torch scoring equals NumPy reference.
+- Full synthetic pipeline run: encrypt → evaluate → security simulation
 - Dashboard built with Vite and rendered in headless Chromium against the Flask server with synthetic artifacts: Compare and Theft views show data, no console errors.
 
 **Not done:** run on Google Colab or an A100 (timings unknown); run on Windows 11; real CelebA accuracy; rejecting a real
