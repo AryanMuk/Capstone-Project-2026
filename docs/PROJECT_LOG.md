@@ -83,18 +83,7 @@ photo of an unenrolled person; authenticate view with a real uploaded face in th
 Checklist per PR: tests pass; `CODEBASE_MAP.md` regenerated; no duplicate helpers (reuse `common/`); no secrets or photos committed;
 log updated. Review is by a teammate other than the author.
 
-## 9. Activity Log
-
-| Date          | Activity                                                                                         | By     |
-| ------------- | ------------------------------------------------------------------------------------------------ | ------ |
-| **[TO FILL]** | Project kickoff, roles, tool sign-ups                                                            | team   |
-| **[TO FILL]** | Literature review completed                                                                      | team   |
-| **[TO FILL]** | CelebA downloaded to laptop                                                                      | team   |
-| 2026-10-04    | Requirements clarified (closed/open set, FaceNet, SQLite, non-invertible template, CMMI L3)      | Suvrat |
-| 2026-10-04    | Pipeline, backend, dashboard, integration, Colab runner and documentation produced (AI-assisted) | team   |
-| 2026-10-04    | Smoke tests and render check run (§7)                                                            | team   |
-
-## 10. Measurement And Analysis (MA)
+## 9. Measurement And Analysis (MA)
 
 Measures collected by the pipeline: rank-1, AUC, EER, FRR at FAR 1%, DIR at FPIR 0.001/0.01/0.1, verify latency,
 decrypt time per template, bytes per template, attack success rates per scenario, stage timings
@@ -103,7 +92,7 @@ Findings to check on real data (seen on synthetic data only): the 256-bit cancel
 an embedding reconstructed from a stolen cancelable code still matches after re-keying; a leaked master key defeats AES/ECIES
 templates; re-keyed codes of the same face keep a small random similarity.
 
-## 11. Configuration Management (CM)
+## 10. Configuration Management (CM)
 
 Git, per-member feature branches, pull requests to `main`. Baselines: tag after each verified milestone.
 Generated/ignored: `work/`, `keys/`, `*.sqlite`, `*.npy`, `frontend/node_modules`, `frontend/dist`.
