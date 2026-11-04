@@ -13,7 +13,7 @@ Structured to CMMI for Development, Maturity Level 3
 
 | Maturity Level 2 Areas                                                                                                                                                                                                                                                                                                                                                                        | Maturity Level 3 Areas                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| • [REQM Requirements Management](#3-requirements-register)<br>• [PP Project Planning](#4-project-plan-versus-gantt)<br>• [PMC Project Monitoring & Control](#4-project-plan-versus-gantt)<br>• [MA Measurement & Analysis](#10-measurement-and-analysis-ma)<br>• [PPQA Process & Product Quality Assurance](#8-quality-assurance-ppqa)<br>• [CM Configuration Management](#11-configuration-management-cm) | • [RD Requirements Development](#3-requirements-register)<br>• [TS Technical Solution](#5-decision-log-dar)<br>• [PI Product Integration](../src/Integration_Suvrat.py)<br>• [VER Verification / VAL Validation](#7-verification-and-validation-record)<br>• [RSKM Risk Management](#6-risk-register-rskm)<br>• [DAR Decision Analysis & Resolution](#5-decision-log-dar)<br>• [OPD Organizational Process Definition](../CONTRIBUTING.md) |
+| • [REQM Requirements Management](#3-requirements-register)<br>• [PP Project Planning](#4-project-plan-versus-gantt)<br>• [PMC Project Monitoring & Control](#4-project-plan-versus-gantt)<br>• [MA Measurement & Analysis](#9-measurement-and-analysis-ma)<br>• [PPQA Process & Product Quality Assurance](#8-quality-assurance-ppqa)<br>• [CM Configuration Management](#10-configuration-management-cm) | • [RD Requirements Development](#3-requirements-register)<br>• [TS Technical Solution](#5-decision-log-dar)<br>• [PI Product Integration](../src/Integration_Suvrat.py)<br>• [VER Verification / VAL Validation](#7-verification-and-validation-record)<br>• [RSKM Risk Management](#6-risk-register-rskm)<br>• [DAR Decision Analysis & Resolution](#5-decision-log-dar)<br>• [OPD Organizational Process Definition](../CONTRIBUTING.md) |
 
 ## 3. Requirements Register
 
@@ -87,12 +87,8 @@ log updated. Review is by a teammate other than the author.
 
 Measures collected by the pipeline: rank-1, AUC, EER, FRR at FAR 1%, DIR at FPIR 0.001/0.01/0.1, verify latency,
 decrypt time per template, bytes per template, attack success rates per scenario, stage timings
-(`integration_report.json`). Real values: **[TO FILL after the Colab run]**.
-Findings to check on real data (seen on synthetic data only): the 256-bit cancelable template loses accuracy, especially for 1:N;
-an embedding reconstructed from a stolen cancelable code still matches after re-keying; a leaked master key defeats AES/ECIES
-templates; re-keyed codes of the same face keep a small random similarity.
+(`integration_report.json`).
 
 ## 10. Configuration Management (CM)
 
-Git, per-member feature branches, pull requests to `main`. Baselines: tag after each verified milestone.
-Generated/ignored: `work/`, `keys/`, `*.sqlite`, `*.npy`, `frontend/node_modules`, `frontend/dist`.
+Git, per-member feature branches, pull requests to `main`. Ignored: `work/`, `keys/`, `*.sqlite`, `*.npy`, `frontend/node_modules`, `frontend/dist`.
